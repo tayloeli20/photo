@@ -19,10 +19,6 @@ def fileinfo():
     step = csvr.iloc[-1, -1]
     return last, step
 
-
-# the last page used
-
-
 # makes download directory priority and initializes browser
 options = webdriver.ChromeOptions()
 prefs = {"profile.default_content_settings.popups": 0,
@@ -48,7 +44,7 @@ openaccess.click()
 time.sleep(5)
 main_page = browser.window_handles[0]
 
-
+#pulled from stockoverflow
 def append_list_as_row(file_name, list_of_elem):
     # Open file in append mode
     with open(file_name, 'a+', newline='') as write_obj:
@@ -58,6 +54,7 @@ def append_list_as_row(file_name, list_of_elem):
         csv_writer.writerow(list_of_elem)
 
 
+# navigates to download page popup
 def openim():
     try:
         y = WebDriverWait(browser, 10).until(
@@ -74,11 +71,13 @@ def openim():
         browser.switch_to.window(download_page)
     except IndexError:
         # in case the download page hasn't opened
-        print('problem in openim, attempting to open wait and try again after the page has loaded another 5 seconds')
+        print('problem in funct openim, attempting to open wait and try again after the page has loaded another 5 '
+              'seconds')
         time.sleep(5)
         openim()
 
 
+# navigates to download page at main_page
 def findpage():
     last, step = fileinfo()
     p = str(last)
@@ -89,12 +88,13 @@ def findpage():
     select = head.find_element_by_id('PageSelectBox')
 
     browser.execute_script(value_w, select)
+    time.sleep(15)
     browser.execute_script("arguments[0].onblur();", select)
     time.sleep(10)
     openim()
 
 
-# this function initializes the file so we know when to reset the code for the next page of the function
+# this initializing def makes a line in the csv file for the findpage function to find the last page
 def init():
     last, step = fileinfo()
     filename = 'INITIALIZING'
@@ -113,7 +113,7 @@ def init():
     append_list_as_row(totalList, fields)
 
 
-# goes through
+# goes through and download images in popup
 def download():
     time.sleep(5)
     last, step = fileinfo()
@@ -135,11 +135,11 @@ def download():
             )
             z.click()
         except TimeoutException:
-            print('couldnt find da  link to download so we skipped')
+            print('couldnt find da link to download so we skipped')
             browser.close()
             browser.switch_to.window(main_page)
             openim()
-            print('couldnt find da  link to download so we skipped')
+            print('couldnt find da link to download so we skipped')
             num = num + 1
             v = str(num)
             value_change = "arguments[0].value = '{}';".format(v)
@@ -147,11 +147,14 @@ def download():
             browser.execute_script(value_change, bar)
             browser.execute_script("arguments[0].onchange();", bar)
 
-        photos = 'C:/Users/smoot/PycharmProjects/photo/venv/photos/*.jpg'
+        photos = 'C:/Users/smoot/PycharmProjects/photo/venv/photos/*.jpg' # * means all if need specific format then *.csv
 
         time.sleep(2)
         list_of_files = glob.glob(
-            photos)  # * means all if need specific format then *.csv
+            photos)
+
+        # list_of_files.remove(max(list_of_files, key=os.path.getctime))
+
         latest_file = max(list_of_files, key=os.path.getctime)
         filename = latest_file[49:]
         print(filename)
@@ -190,35 +193,24 @@ def download():
     browser.close()
 
 
-# this initializing def makes a line in the csv file for the findpage function to find the last page
-
-
-# navigates to download page popup
-
 class Setup:
-    try:
-        last, step = fileinfo()
+    last, step = fileinfo()
 
-        if int(step) == 25:
-            init()
+    findpage()
+    # *you need to have an exception to this  error*
+    #  raise TimeoutException(message, screen, stacktrace)       ----COMPLETED---
+    #  selenium.common.exceptions.TimeoutException: Message:
+    download()
 
-        findpage()
-        # *you need to have an exception to this error*
-        #  raise TimeoutException(message, screen, stacktrace)
-        #  selenium.common.exceptions.TimeoutException: Message:
-        download()
+    browser.switch_to.window(main_page)
 
-        browser.switch_to.window(main_page)
+    p = str(last)
 
-        p = str(last)
+    value_c = "arguments[0].value = '{}';".format(p)
 
-        value_c = "arguments[0].value = '{}';".format(p)
+    head = browser.find_element_by_id('GridHeader')
+    select = head.find_element_by_id('PageSelectBox')
 
-        head = browser.find_element_by_id('GridHeader')
-        select = head.find_element_by_id('PageSelectBox')
-
-        browser.execute_script(value_c, select)
-        browser.execute_script("arguments[0].onblur();", select)
-        browser.quite()
-    except:
-        browser.quit()
+    browser.execute_script(value_c, select)
+    browser.execute_script("arguments[0].onblur();", select)
+    browser.quit()
