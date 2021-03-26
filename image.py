@@ -191,9 +191,7 @@ def download():
         num = num + 1
     init()
     browser.close()
-
-
-class Setup:
+def run():
     last, step = fileinfo()
 
     findpage()
@@ -204,13 +202,20 @@ class Setup:
 
     browser.switch_to.window(main_page)
 
-    p = str(last)
+    findpage()
 
-    value_c = "arguments[0].value = '{}';".format(p)
+    download()
 
-    head = browser.find_element_by_id('GridHeader')
-    select = head.find_element_by_id('PageSelectBox')
-
-    browser.execute_script(value_c, select)
-    browser.execute_script("arguments[0].onblur();", select)
     browser.quit()
+
+class Setup:
+    try:
+        run()
+        exit(1)
+    except:
+        exit(1)
+
+
+
+
+
